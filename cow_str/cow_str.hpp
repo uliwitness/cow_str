@@ -12,6 +12,9 @@ namespace cow {
 	
 	using namespace std;
 	
+	/*! buf is a refcounted string storage. It always allocates a nul terminator for cheap
+		conversion to C-string. The refcount is guaranteed to be thread-safe, for write
+		access you must be exclusive owner of a buf, or you will not be thread-safe. */
 	class buf {
 	public:
 		enum is_constant {
@@ -36,26 +39,26 @@ namespace cow {
 		
 		/*! Copy buf if caller is not the only owner.
 			Gives up ownership of buf if it gives you a new copy. */
-		buf* writable() {
-			if (_refcount > 1) {
-				auto newBuf = new buf(_bytes, _len);
-				refund();
-				return newBuf;
-			} else {
+		buf* mutableCopy() {
+			if (_refcount == 1) {
 				return this;
+			} else {
+				auto newBuf = new buf(_bytes, _len);
+				release();
+				return newBuf;
 			}
 		}
 		//! Increment refcount to make us co-owner of buf.
-		buf* readable() { ++_refcount; return this; };
+		buf* retain() { ++_refcount; return this; };
 		//! Give up caller's ownership of buf, deleting it of caller was last owner.
-		void refund() { if (--_refcount == 0) { delete this; } }
+		void release() { if (--_refcount == 0) { delete this; } }
 
 		const char* data() const { return _bytes; };
 		char* data() { return _bytes; };
 		
 		size_t length() { return _len; }
 		
-		static buf* empty_buf() { return _empty_buf.readable(); }
+		static buf* empty_buf() { return _empty_buf.retain(); }
 		
 	private:
 		static char empty_cstr;
@@ -84,9 +87,9 @@ namespace cow {
 		str() { _buf = buf::empty_buf(); }
 		str(const char* str, is_constant isc = is_constant::not_constant) : _buf(new buf(str, isc)) {}
 		str(const char* str, size_t len) : _buf(new buf(str, len)) {}
-		str(const str& inOriginal) : _buf(inOriginal._buf->readable()) {}
+		str(const str& inOriginal) : _buf(inOriginal._buf->retain()) {}
 		str(str&& inOriginal) : _buf(inOriginal._buf) { inOriginal._buf = nullptr; }
-		~str() { _buf->refund(); }
+		~str() { _buf->release(); }
 		
 		size_t length() const { return _buf->length(); }
 		size_t size() const { return _buf->length(); }
@@ -99,14 +102,14 @@ namespace cow {
 		iterator end() { return _buf->data() + _buf->length(); }
 
 		char operator [] (size_t idx) const { return _buf->data()[idx]; }
-		char& operator [] (size_t idx) { _buf = _buf->writable(); return _buf->data()[idx]; }
+		char& operator [] (size_t idx) { _buf = _buf->mutableCopy(); return _buf->data()[idx]; }
 
 		char at(size_t idx) const { if (idx >= _buf->length()) { throw range_error("cow::str::at"); } return _buf->data()[idx]; }
-		char& at(size_t idx) { if (idx >= _buf->length()) { throw range_error("cow::str::at"); } _buf = _buf->writable(); return _buf->data()[idx]; }
+		char& at(size_t idx) { if (idx >= _buf->length()) { throw range_error("cow::str::at"); } _buf = _buf->mutableCopy(); return _buf->data()[idx]; }
 
 		const char* c_str() const { return _buf->data(); }
 		const char* data() const { return _buf->data(); }
-		char* data() { _buf = _buf->writable(); return _buf->data(); }
+		char* data() { _buf = _buf->mutableCopy(); return _buf->data(); }
 
 		void append(const str& inNewEnd);
 		

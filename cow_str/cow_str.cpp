@@ -25,7 +25,7 @@ void str::append(const str& inNewEnd) {
 	_buf = new buf(_buf->length() + inNewEnd.length(), '\0');
 	memcpy(_buf->data(), oldBuf->data(), oldBuf->length());
 	memcpy(_buf->data() + oldBuf->length(), inNewEnd._buf->data(), inNewEnd.length());
-	oldBuf->refund();
+	oldBuf->release();
 }
 
 //void str::insert(iterator dest, str& inNewEnd) {
