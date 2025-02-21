@@ -98,8 +98,8 @@ namespace cow {
 		const_iterator begin() const { return _buf->data(); }
 		const_iterator end() const { return _buf->data() + _buf->length(); }
 		
-		iterator begin() { return _buf->data(); }
-		iterator end() { return _buf->data() + _buf->length(); }
+		iterator begin() { _buf = _buf->mutableCopy(); return _buf->data(); }
+		iterator end() { _buf = _buf->mutableCopy(); return _buf->data() + _buf->length(); }
 
 		char operator [] (size_t idx) const { return _buf->data()[idx]; }
 		char& operator [] (size_t idx) { _buf = _buf->mutableCopy(); return _buf->data()[idx]; }
@@ -113,7 +113,7 @@ namespace cow {
 
 		void append(const str& inNewEnd);
 		
-		//void insert(iterator dest, str& inNewEnd);
+		void insert(iterator dest, const str& inNewEnd);
 
 	private:
 		buf *_buf;

@@ -28,11 +28,18 @@ void str::append(const str& inNewEnd) {
 	oldBuf->release();
 }
 
-//void str::insert(iterator dest, str& inNewEnd) {
-//	if (inNewEnd.empty()) { return; }
-//	auto oldBuf = _buf;
-//	_buf = new buf(_buf->length() + inNewEnd.length(), '\0');
-//	memcpy(_buf->getbuf(), oldBuf->getbuf(), oldBuf->length());
-//	memcpy(_buf->getbuf() + oldBuf->length(), inNewEnd._buf->getbuf(), inNewEnd.length());
-//	oldBuf->refund();
-//}
+void str::insert(iterator dest, const str& inNewEnd) {
+	if (inNewEnd.empty()) { return; }
+	size_t offset = distance(_buf->data(), dest);
+	auto oldBuf = _buf;
+	_buf = new buf(_buf->length() + inNewEnd.length(), '\0');
+	if (offset > 0) {
+		memcpy(_buf->data(), oldBuf->data(), offset);
+	}
+	memcpy(_buf->data() + offset, inNewEnd.begin(), inNewEnd.length());
+	size_t afterInsertionOffset = offset + inNewEnd.length();
+	if (afterInsertionOffset < _buf->length()) {
+		memcpy(_buf->data() + afterInsertionOffset, oldBuf->data() + offset, oldBuf->length() - offset);
+	}
+	oldBuf->release();
+}

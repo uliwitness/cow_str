@@ -8,7 +8,7 @@ using namespace cow;
 using namespace std;
 
 int main(int argc, const char * argv[]) {
-	str myString("Hello world!");
+	str myString("Hello world!"_cow);
 	
 	for (auto ch : myString) {
 		cout << ch << endl;
@@ -24,5 +24,17 @@ int main(int argc, const char * argv[]) {
 
 	cout << collection << endl;
 	
+	str insertableString("future"_cow);
+	insertableString.insert(insertableString.begin(), "NO"_cow);
+	cout << insertableString << endl;
+	
+	str insertableString2("helloworld"_cow);
+	insertableString2.insert(insertableString2.begin() + 5, ", "_cow);
+	cout << insertableString2 << endl;
+	
+	str insertableString3("Johann Sebastian"_cow);
+	insertableString3.insert(insertableString3.end(), " BACH"_cow);
+	cout << insertableString3 << endl;
+
 	return 0;
 }
