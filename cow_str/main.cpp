@@ -35,6 +35,14 @@ int main(int argc, const char * argv[]) {
 	str insertableString3("Johann Sebastian"_cow);
 	insertableString3.insert(insertableString3.end(), " BACH"_cow);
 	cout << insertableString3 << endl;
+	
+	str insertableString4;
+	insertableString4.insert(insertableString4.begin(), "HyperCard"_cow);
+	cout << insertableString4 << endl;
+
+	str insertableString5;
+	insertableString5.insert(insertableString5.end(), "SuperCard"_cow);
+	cout << insertableString5 << endl;
 
 	return 0;
 }
